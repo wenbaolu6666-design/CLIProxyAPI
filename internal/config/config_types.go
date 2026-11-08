@@ -1150,6 +1150,11 @@ type OpenAICompatibilityModel struct {
 	// Default false preserves max_tokens for older compatible upstreams.
 	UseMaxCompletionTokens bool `yaml:"use-max-completion-tokens,omitempty" json:"use-max-completion-tokens,omitempty"`
 
+	// DemoteDeveloperRole rewrites developer messages to system messages for upstreams
+	// whose Chat Completions dialect rejects the developer role.
+	// Default false preserves the OpenAI developer role.
+	DemoteDeveloperRole bool `yaml:"demote-developer-role,omitempty" json:"demote-developer-role,omitempty"`
+
 	// Thinking configures the thinking/reasoning capability for this model.
 	// If nil, the model defaults to level-based reasoning with levels ["low", "medium", "high"].
 	Thinking *registry.ThinkingSupport `yaml:"thinking,omitempty" json:"thinking,omitempty"`
@@ -1163,6 +1168,7 @@ func (m OpenAICompatibilityModel) GetDisplayName() string          { return m.Di
 func (m OpenAICompatibilityModel) GetMaxContextLength() int        { return m.MaxContextLength }
 func (m OpenAICompatibilityModel) GetForceMapping() bool           { return m.ForceMapping }
 func (m OpenAICompatibilityModel) GetIsCompat() bool               { return m.IsCompat }
+func (m OpenAICompatibilityModel) GetDemoteDeveloperRole() bool    { return m.DemoteDeveloperRole }
 func (m OpenAICompatibilityModel) GetUseMaxCompletionTokens() bool { return m.UseMaxCompletionTokens }
 
 func (m OpenAICompatibilityModel) GetThinking() *registry.ThinkingSupport { return m.Thinking }
