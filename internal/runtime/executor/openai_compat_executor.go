@@ -166,6 +166,9 @@ func (e *OpenAICompatExecutor) executeWithCredentials(ctx context.Context, auth 
 
 	requestedModel := helps.PayloadRequestedModel(opts, req.Model)
 	requestPath := helps.PayloadRequestPath(opts)
+	if helps.ShouldDemoteDeveloperRoleForModel(compat, baseModel, requestedModel) {
+		helps.DemoteOpenAIDeveloperRoleDoc(doc)
+	}
 	if helps.ShouldNormalizeOpenAIToolResultsForModel(compat, baseModel, requestedModel) {
 		helps.NormalizeOpenAIToolResultsTextOnlyDoc(doc)
 	}
@@ -407,6 +410,9 @@ func (e *OpenAICompatExecutor) executeStreamWithCredentials(ctx context.Context,
 
 	requestedModel := helps.PayloadRequestedModel(opts, req.Model)
 	requestPath := helps.PayloadRequestPath(opts)
+	if helps.ShouldDemoteDeveloperRoleForModel(compat, baseModel, requestedModel) {
+		helps.DemoteOpenAIDeveloperRoleDoc(doc)
+	}
 	if helps.ShouldNormalizeOpenAIToolResultsForModel(compat, baseModel, requestedModel) {
 		helps.NormalizeOpenAIToolResultsTextOnlyDoc(doc)
 	}
