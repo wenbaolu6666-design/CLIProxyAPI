@@ -62,7 +62,7 @@ func TestRegisterModelsForAuth_PluginStaticModelsFollowExclusions(t *testing.T) 
 		wantCredValue bool
 	}{
 		{name: "global rules", wantGlobal: false, wantCredValue: true},
-		{name: "credential rules override global", ownRules: pluginStaticCredentialModel, wantGlobal: true, wantCredValue: false},
+		{name: "credential rules stack with global", ownRules: pluginStaticCredentialModel, wantGlobal: false, wantCredValue: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			auth := &coreauth.Auth{ID: t.Name(), Provider: provider, Status: coreauth.StatusActive, Attributes: map[string]string{"auth_kind": "oauth"}}
@@ -122,12 +122,13 @@ func TestPluginStaticModelAvailabilityFollowsCredentials(t *testing.T) {
 	service.registerModelsForAuth(t.Context(), inherited)
 	assertAvailable("global exclusions", false, true)
 
-	// A credential override may still expose a globally excluded model.
+	// Credential rules stack with global rules instead of overriding them.
 	service.registerModelsForAuth(t.Context(), override)
-	assertAvailable("different credential exclusions", true, true)
+	reg.UnregisterClient(inherited.ID)
+	assertAvailable("stacked credential exclusions", false, false)
 	override.Attributes["excluded_models"] = "plugin-static-*"
 	service.registerModelsForAuth(t.Context(), override)
-	assertAvailable("last supporting credential excludes model", false, true)
+	assertAvailable("credential wildcard stacks with global rules", false, false)
 
 	cfg.OAuthExcludedModels[provider] = []string{"plugin-static-*"}
 	service.registerModelsForAuth(t.Context(), inherited)
@@ -141,17 +142,22 @@ func TestPluginStaticModelAvailabilityFollowsCredentials(t *testing.T) {
 		t.Fatalf("source catalog = %#v, want both models retained", models)
 	}
 
+	cfg.OAuthExcludedModels[provider] = []string{pluginStaticGlobalModel}
+	service.registerModelsForAuth(t.Context(), inherited)
 	override.Attributes["excluded_models"] = pluginStaticCredentialModel
 	service.registerModelsForAuth(t.Context(), override)
-	assertAvailable("credential override after reload", true, false)
+	reg.UnregisterClient(inherited.ID)
+	assertAvailable("stacked rules after reload", false, false)
+	service.registerModelsForAuth(t.Context(), inherited)
 	override.Disabled = true
 	service.registerModelsForAuth(t.Context(), override)
-	assertAvailable("last supporting credential disabled", false, false)
+	assertAvailable("credential disabled keeps global exclusion", false, true)
 	override.Disabled = false
+	delete(override.Attributes, "excluded_models")
 	service.registerModelsForAuth(t.Context(), override)
-	assertAvailable("credential re-enabled", true, false)
+	assertAvailable("credential re-enabled without own rules", false, true)
 	reg.UnregisterClient(override.ID)
-	assertAvailable("last supporting credential removed", false, false)
+	assertAvailable("last supporting credential removed", false, true)
 }
 
 func TestRegisterModelsForAuth_PluginStaticExclusionsDoNotMatchNativeAliases(t *testing.T) {
@@ -192,7 +198,7 @@ func TestAntigravityModelsForHints_PluginStaticModelsFollowExclusions(t *testing
 		wantCredValue bool
 	}{
 		{name: "global rules", wantGlobal: false, wantCredValue: true},
-		{name: "credential rules override global", ownRules: pluginStaticCredentialModel, wantGlobal: true, wantCredValue: false},
+		{name: "credential rules stack with global", ownRules: pluginStaticCredentialModel, wantGlobal: false, wantCredValue: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			auth := antigravityTestAuth(t.Name(), "http://127.0.0.1:1")

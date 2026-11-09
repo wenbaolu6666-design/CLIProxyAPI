@@ -12,7 +12,7 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/config"
 )
 
-func TestRegisterModelsForAuth_CredentialExcludedModelsOverrideGlobal(t *testing.T) {
+func TestRegisterModelsForAuth_CredentialExcludedModelsStackWithGlobal(t *testing.T) {
 	service := &Service{
 		cfg: &config.Config{
 			OAuthExcludedModels: map[string][]string{
@@ -53,18 +53,13 @@ func TestRegisterModelsForAuth_CredentialExcludedModelsOverrideGlobal(t *testing
 		}
 	}
 
-	seenGlobalExcluded := false
 	for _, model := range models {
 		if model == nil {
 			continue
 		}
 		if strings.EqualFold(strings.TrimSpace(model.ID), "gemini-2.5-pro") {
-			seenGlobalExcluded = true
-			break
+			t.Fatalf("expected model %q to be excluded by global rules", model.ID)
 		}
-	}
-	if !seenGlobalExcluded {
-		t.Fatal("expected global excluded model to be present when attribute override is set")
 	}
 }
 

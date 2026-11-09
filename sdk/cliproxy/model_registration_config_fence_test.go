@@ -149,7 +149,7 @@ func TestModelRegistrationAllowsIrrelevantConfigReload(t *testing.T) {
 		{"no-op", map[string][]string{"claude": {"model-a"}}, "oauth", "", false},
 		{"normalized no-op", map[string][]string{"claude": {" MODEL-A ", "model-a", " "}}, "oauth", "", false},
 		{"other provider", map[string][]string{"claude": {"model-a"}, "codex": {"model-b"}}, "oauth", "", false},
-		{"credential override", map[string][]string{"claude": {"model-b"}}, "oauth", "own-*", false},
+		{"credential rules with unchanged global", map[string][]string{"claude": {"model-a"}}, "oauth", "own-*", false},
 		{"api key", map[string][]string{"claude": {"model-b"}}, "apikey", "", false},
 		{"disabled", map[string][]string{"claude": {"model-b"}}, "oauth", "", true},
 	} {
